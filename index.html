@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a2e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Volley Plan">
+<link rel="manifest" href="manifest.json">
+<script src="fit-parser.js"></script>
+<script src="garmin-sync.js"></script>
+<title>Plan Volley 2026</title>
+<style>
+:root {
+  --bg: #0f1a0f; --surface: #1a2e1a; --surface2: #243824; --surface3: #2e4a2e;
+  --accent: #7eb87a; --accent2: #a8d4a4; --gold: #d4a847;
+  --red: #c0392b; --orange: #e07b39; --blue: #4a9aba; --purple: #9b59b6;
+  --text: #e8f0e8; --text2: #9ab89a; --text3: #5a7a5a;
+  --border: #2a3e2a; --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system,'Helvetica Neue',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:72px; font-size:14px; line-height:1.5; }
+
+/* NAV */
+.nav { position:fixed; bottom:0; left:0; right:0; z-index:100; background:var(--surface); border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom); }
+.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:9px 2px 5px; border:none; background:none; color:var(--text3); cursor:pointer; transition:color .2s; font-size:9px; gap:3px; }
+.nav-btn.active { color:var(--accent); }
+.nav-btn svg { width:20px; height:20px; }
+.nav-btn .badge { position:relative; }
+.nav-badge { position:absolute; top:-4px; right:-6px; background:var(--orange); color:white; border-radius:8px; font-size:8px; font-weight:700; padding:0 4px; min-width:14px; text-align:center; }
+
+/* HEADER */
+.header { background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%); border-bottom:1px solid var(--border); padding:14px 16px 10px; position:sticky; top:0; z-index:50; }
+.header-title { font-size:17px; font-weight:700; color:var(--accent); letter-spacing:-.3px; display:flex; align-items:center; gap:8px; }
+.header-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+
+/* PAGES */
+.page { display:none; }
+.page.active { display:block; }
+.page-content { padding:12px 12px 0; }
+
+/* CARDS */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+.card-header { padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+.card-body { padding:0 14px 12px; }
+.card-title { font-size:14px; font-weight:700; color:var(--text); }
+.card-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+
+/* SECTION */
+.section-title { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin:16px 0 8px; }
+
+/* TAGS */
+.tag { display:inline-block; padding:1px 6px; border-radius:4px; font-size:9px; font-weight:700; letter-spacing:.3px; margin-right:3px; }
+.tag-force { background:rgba(126,184,122,.2); color:var(--accent); }
+.tag-run { background:rgba(74,154,186,.2); color:var(--blue); }
+.tag-cardio { background:rgba(74,154,186,.15); color:#6ab0c8; }
+.tag-volley { background:rgba(212,168,71,.2); color:var(--gold); }
+.tag-mob { background:rgba(150,100,180,.2); color:#b088d8; }
+.tag-rest { background:rgba(90,90,90,.2); color:#888; }
+.phase-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; }
+.phase-tag-1 { background:rgba(74,124,74,.25); color:#90c890; border:1px solid rgba(74,124,74,.4); }
+.phase-tag-2 { background:rgba(122,106,48,.25); color:#c8b060; border:1px solid rgba(122,106,48,.4); }
+.phase-tag-3 { background:rgba(58,106,122,.25); color:#70b8d0; border:1px solid rgba(58,106,122,.4); }
+.phase-tag-4 { background:rgba(122,58,106,.25); color:#d090c0; border:1px solid rgba(122,58,106,.4); }
+.phase-tag-5 { background:rgba(58,90,122,.25); color:#80b0d8; border:1px solid rgba(58,90,122,.4); }
+
+/* INPUTS */
+.input-group { flex:1; }
+.input-row { display:flex; gap:8px; margin-bottom:8px; }
+.input-label { font-size:10px; color:var(--text3); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+.input-field { width:100%; padding:9px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; outline:none; -webkit-appearance:none; appearance:none; }
+.input-field:focus { border-color:var(--accent); }
+textarea.input-field { resize:none; font-family:inherit; }
+
+/* BUTTONS */
+.btn { display:block; width:100%; padding:12px; background:var(--accent); color:var(--bg); border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; }
+.btn:active { opacity:.8; }
+.btn-sm { padding:7px 12px; font-size:13px; font-weight:600; border-radius:7px; border:none; cursor:pointer; }
+.btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+.btn-danger { background:rgba(192,57,43,.2); color:#e07070; border:1px solid rgba(192,57,43,.3); }
+.btn-garmin { background:rgba(29,195,124,.15); color:#1dc37c; border:1px solid rgba(29,195,124,.3); }
+.btn-row { display:flex; gap:8px; margin-top:8px; }
+
+/* STATUS */
+.status-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:6px 0; }
+.status-btn { padding:9px 4px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:11px; font-weight:600; cursor:pointer; text-align:center; }
+.status-btn.sel-done { background:rgba(126,184,122,.3); color:var(--accent); border-color:var(--accent); }
+.status-btn.sel-skip { background:rgba(192,57,43,.3); color:#e07070; border-color:#c0392b; }
+.status-btn.sel-moved { background:rgba(224,123,57,.3); color:var(--orange); border-color:var(--orange); }
+
+/* RPE */
+.rpe-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin:6px 0; }
+.rpe-btn { padding:9px 4px; border-radius:7px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:14px; font-weight:700; cursor:pointer; text-align:center; }
+.rpe-btn.selected { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+
+/* SESSION ROW */
+.session-row { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-top:1px solid var(--border); }
+.session-day { font-size:10px; font-weight:700; letter-spacing:.4px; color:var(--text3); width:38px; flex-shrink:0; padding-top:2px; text-transform:uppercase; }
+.session-content { flex:1; }
+.session-name { font-size:13px; font-weight:600; color:var(--text); }
+.session-detail { font-size:11px; color:var(--text2); margin-top:2px; }
+
+/* LOAD BAR */
+.load-bar-wrap { margin:6px 0 4px; }
+.load-label { font-size:10px; color:var(--text3); margin-bottom:3px; display:flex; justify-content:space-between; }
+.load-bar { height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+.load-fill { height:100%; border-radius:2px; }
+
+/* ACHILLE */
+.achilles-card { background:rgba(192,57,43,.1); border:1px solid rgba(192,57,43,.3); border-radius:var(--radius); padding:12px 14px; margin-bottom:10px; }
+.achilles-title { font-size:13px; font-weight:700; color:#e07070; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.achilles-row { font-size:11px; color:var(--text2); padding:3px 0; border-top:1px solid rgba(192,57,43,.15); }
+
+/* TODAY */
+.today-box { background:linear-gradient(135deg,var(--surface2),var(--surface3)); border:1px solid var(--accent); border-radius:var(--radius); padding:14px; margin-bottom:12px; }
+.today-label { font-size:10px; font-weight:700; letter-spacing:1px; color:var(--accent); text-transform:uppercase; margin-bottom:6px; }
+.today-session { font-size:16px; font-weight:700; color:var(--text); }
+.today-detail { font-size:12px; color:var(--text2); margin-top:4px; }
+
+/* GARMIN INTEGRATION */
+.garmin-card { background:linear-gradient(135deg,rgba(29,195,124,.08),rgba(29,195,124,.03)); border:1px solid rgba(29,195,124,.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:10px; }
+.garmin-title { font-size:13px; font-weight:700; color:#1dc37c; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.garmin-stat { display:inline-block; background:rgba(29,195,124,.1); border-radius:6px; padding:4px 10px; margin:3px 3px 3px 0; font-size:12px; color:#50d0a0; }
+.garmin-warning { font-size:10px; color:var(--text3); font-style:italic; margin-top:6px; padding-top:6px; border-top:1px solid rgba(29,195,124,.15); }
+
+/* SYNC SOURCE TABS */
+.source-tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.source-tab { padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--text3); font-size:11px; font-weight:600; cursor:pointer; }
+.source-tab.active { background:rgba(126,184,122,.2); color:var(--accent); border-color:var(--accent); }
+
+/* HR ZONES */
+.hr-zones { display:flex; gap:3px; height:40px; align-items:flex-end; margin:8px 0; }
+.hr-zone-bar { flex:1; border-radius:3px 3px 0 0; display:flex; align-items:flex-start; justify-content:center; }
+.hr-zone-label { font-size:8px; font-weight:700; padding-top:2px; }
+.zone-colors { background:linear-gradient(180deg,#3a8af0 0%,#3a8af0 100%); }
+
+/* METRIC GRID */
+.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.metric-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; }
+.metric-value { font-size:22px; font-weight:800; }
+.metric-label { font-size:10px; color:var(--text3); margin-top:2px; }
+.metric-sub { font-size:10px; margin-top:2px; }
+
+/* FATIGUE GAUGE */
+.fatigue-wrap { position:relative; margin:8px 0; }
+.fatigue-bar { height:8px; background:var(--surface3); border-radius:4px; overflow:hidden; }
+.fatigue-fill { height:100%; border-radius:4px; transition:width .6s; }
+.fatigue-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text3); margin-top:3px; }
+
+/* PLAN VS REAL */
+.match-row { padding:8px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+.match-plan { flex:1; }
+.match-garmin { flex:1; padding:6px 8px; border-radius:6px; }
+.match-ok { background:rgba(126,184,122,.1); border:1px solid rgba(126,184,122,.2); }
+.match-partial { background:rgba(212,168,71,.1); border:1px solid rgba(212,168,71,.2); }
+.match-missing { background:rgba(192,57,43,.08); border:1px solid rgba(192,57,43,.15); }
+.match-icon { font-size:16px; width:20px; text-align:center; flex-shrink:0; }
+
+/* SLEEP BARS */
+.sleep-row { display:flex; gap:3px; height:20px; border-radius:4px; overflow:hidden; margin:6px 0; }
+.sleep-deep { background:#3a4a9a; }
+.sleep-rem { background:#7a3a9a; }
+.sleep-light { background:#3a7a9a; }
+.sleep-awake { background:#6a3a2a; }
+
+/* UPLOAD ZONE */
+.upload-zone { border:2px dashed var(--border); border-radius:var(--radius); padding:24px; text-align:center; cursor:pointer; transition:border-color .2s; }
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--accent); background:rgba(126,184,122,.05); }
+.upload-icon { font-size:32px; margin-bottom:8px; }
+.upload-label { font-size:13px; color:var(--text2); }
+.upload-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+/* LOG ENTRY */
+.log-entry { padding:9px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.log-date { font-size:10px; color:var(--text3); }
+.log-name { font-size:13px; font-weight:600; color:var(--text); }
+.log-rpe { font-size:16px; font-weight:800; padding:2px 7px; border-radius:6px; background:var(--surface2); }
+.rpe-low { color:#7eb87a; } .rpe-med { color:var(--gold); } .rpe-high { color:var(--orange); } .rpe-max { color:var(--red); }
+.status-done { color:var(--accent); font-size:10px; }
+.status-skip { color:var(--red); font-size:10px; }
+.status-moved { color:var(--orange); font-size:10px; }
+
+/* CHEVRON */
+.chevron { transition:transform .2s; color:var(--text3); flex-shrink:0; }
+.card.expanded .chevron { transform:rotate(180deg); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:flex; align-items:flex-end; }
+.modal { background:var(--surface); border-radius:16px 16px 0 0; padding:20px 16px 32px; width:100%; max-height:80vh; overflow-y:auto; }
+.modal-title { font-size:16px; font-weight:700; color:var(--text); margin-bottom:12px; }
+.modal-close { float:right; background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer; }
+
+/* EXERCISE */
+.exercise-item { padding:8px 0; border-top:1px solid var(--border); }
+.exercise-name { font-size:13px; font-weight:600; }
+.exercise-detail { font-size:11px; color:var(--text2); margin-top:2px; }
+.exercise-cue { font-size:11px; color:var(--text3); padding:3px 8px; margin-top:3px; border-left:2px solid var(--accent); }
+
+canvas { display:block; width:100%; }
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('home')" id="nav-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Aujourd'hui
+  </button>
+  <button class="nav-btn" onclick="showPage('plan')" id="nav-plan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Plan
+  </button>
+  <button class="nav-btn" onclick="showPage('log')" id="nav-log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Logger
+  </button>
+  <button class="nav-btn" onclick="showPage('garmin')" id="nav-garmin">
+    <div class="badge" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <span class="nav-badge" id="garmin-badge" style="display:none">!</span>
+    </div>
+    Garmin
+  </button>
+  <button class="nav-btn" onclick="showPage('analytics')" id="nav-analytics">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Analyse
+  </button>
+</nav>
+
+<!-- ═══════════════════ PAGE: AUJOURD'HUI ═══════════════════ -->
+<div class="page active" id="page-home">
+  <div class="header">
+    <div class="header-title">🏐 Plan Volley 2026</div>
+    <div class="header-sub" id="today-header">—</div>
+  </div>
+  <div class="page-content">
+    <div id="garmin-today-summary"></div>
+    <div id="today-content"></div>
+    <div class="achilles-card">
+      <div class="achilles-title">🛡️ Achille — Non-négociable</div>
+      <div class="achilles-row">🔴 3×15 excentriques · talon dans le vide · 3 sec descente</div>
+      <div class="achilles-row">🔴 1 min étirement mollet passif après chaque série</div>
+      <div class="achilles-row">⚠️ Douleur > 4/10 → arrêt immédiat</div>
+      <div class="achilles-row" id="achille-garmin-tip">🟡 Consulte Garmin pour la charge impact de la semaine</div>
+    </div>
+    <div class="section-title">Séances de la semaine</div>
+    <div id="week-overview"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE: PLAN ═══════════════════ -->
+<div class="page" id="page-plan">
+  <div class="header">
+    <div class="header-title">📅 Plan semaine par semaine</div>
+    <div class="header-sub">22 juin → fin août 2026</div>
+  </div>
+  <div class="page-content" id="plan-content"></div>
+</div>
+
+<!-- ═══════════════════ PAGE: LOGGER ═══════════════════ -->
+<div class="page" id="page-log">
+  <div class="header">
+    <div class="header-title">✏️ Logger une séance</div>
+    <div class="header-sub" id="log-today-date"></div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-body" style="padding-top:12px">
+        <div class="input-row">
+          <div class="input-group">
+            <div class="input-label">Date</div>
+            <input type="date" class="input-field" id="log-date">
+          </div>
+          <div class="input-group">
+            <div class="input-label">Durée (min)</div>
+            <input type="number" class="input-field" id="log-duration" placeholder="45" min="5" max="240">
+          </div>
+        </div>
+        <div class="input-label">Séance</div>
+        <select class="input-field" id="log-session" style="margin-bottom:8px">
+          <option value="">— Choisir —</option>
+          <option value="Force A — KB bas du corps">Force A — KB bas du corps</option>
+          <option value="Force B — KB haut + gainage">Force B — KB haut + gainage</option>
+          <option value="Circuit KB complet">Circuit KB complet</option>
+          <option value="Course EF">Course EF (endurance fondamentale)</option>
+          <option value="Course intervalles">Course intervalles</option>
+          <option value="Spinning / vélo">Spinning / vélo</option>
+          <option value="Vélotaf">Vélotaf</option>
+          <option value="Beach volley">Beach volley</option>
+          <option value="Padel">Padel</option>
+          <option value="Mobilité / récupération">Mobilité / récupération</option>
+          <option value="TGU technique">TGU technique</option>
+          <option value="Autre">Autre</option>
+        </select>
+        <div class="input-label">Statut</div>
+        <div class="status-grid">
+          <button class="status-btn sel-done" onclick="selectStatus('done')" id="sb-done">✅ Faite</button>
+          <button class="status-btn" onclick="selectStatus('skip')" id="sb-skip">❌ Skippée</button>
+          <button class="status-btn" onclick="selectStatus('moved')" id="sb-moved">🔄 Déplacée</button>
+        </div>
+        <div class="input-label">RPE perçu (1–10)</div>
+        <div class="rpe-grid" id="rpe-grid">
+          <button class="rpe-btn" onclick="selectRPE(1)">1</button><button class="rpe-btn" onclick="selectRPE(2)">2</button>
+          <button class="rpe-btn" onclick="selectRPE(3)">3</button><button class="rpe-btn" onclick="selectRPE(4)">4</button>
+          <button class="rpe-btn" onclick="selectRPE(5)">5</button><button class="rpe-btn" onclick="selectRPE(6)">6</button>
+          <button class="rpe-btn" onclick="selectRPE(7)">7</button><button class="rpe-btn" onclick="selectRPE(8)">8</button>
+          <button class="rpe-btn" onclick="selectRPE(9)">9</button><button class="rpe-btn" onclick="selectRPE(10)">10</button>
+        </div>
+        <div class="input-label" style="margin-top:6px">Douleur Achille (0–10)</div>
+        <div class="rpe-grid" id="achille-grid">
+          <button class="rpe-btn" onclick="selectAchille(0)">0</button><button class="rpe-btn" onclick="selectAchille(2)">2</button>
+          <button class="rpe-btn" onclick="selectAchille(4)">4</button><button class="rpe-btn" onclick="selectAchille(6)">6</button>
+          <button class="rpe-btn" onclick="selectAchille(8)">8+</button>
+        </div>
+        <div class="input-row" style="margin-top:8px">
+          <div class="input-group">
+            <div class="input-label">Poids (kg)</div>
+            <input type="number" class="input-field" id="log-weight" placeholder="98.5" step="0.1" min="70" max="130">
+          </div>
+          <div class="input-group">
+            <div class="input-label">Qualité sommeil (1–5)</div>
+            <select class="input-field" id="log-sleep">
+              <option value="">—</option>
+              <option value="1">1 — Très mauvais</option>
+              <option value="2">2 — Mauvais</option>
+              <option value="3">3 — Moyen</option>
+              <option value="4">4 — Bon</option>
+              <option value="5">5 — Excellent</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-label">Notes</div>
+        <textarea class="input-field" id="log-notes" rows="2" placeholder="Comment c'était ? Achille ? Sensations..."></textarea>
+        <button class="btn" onclick="saveLog()">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="section-title">Dernières séances</div>
+    <div id="recent-logs"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE: GARMIN ═══════════════════ -->
+<div class="page" id="page-garmin">
+  <div class="header">
+    <div class="header-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1dc37c" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      Synchronisation Garmin
+    </div>
+    <div class="header-sub" id="garmin-last-sync">Jamais synchronisé</div>
+  </div>
+  <div class="page-content">
+
+    <!-- Source tabs -->
+    <div class="source-tabs">
+      <button class="source-tab active" onclick="showGarminTab('fit')" id="gtab-fit">📁 Fichiers FIT</button>
+      <button class="source-tab" onclick="showGarminTab('json')" id="gtab-json">📄 Export JSON</button>
+      <button class="source-tab" onclick="showGarminTab('api')" id="gtab-api">🔌 API Auto</button>
+    </div>
+
+    <!-- FIT TAB -->
+    <div id="garmin-tab-fit">
+      <div class="card">
+        <div class="card-body" style="padding-top:12px">
+          <div class="upload-zone" id="fit-drop-zone" onclick="document.getElementById('fit-file-input').click()">
+            <div class="upload-icon">⌚</div>
+            <div class="upload-label">Importer fichier(s) .FIT</div>
+            <div class="upload-sub">Depuis la montre en USB : GARMIN/Activity/*.fit</div>
+            <div class="upload-sub" style="margin-top:4px;color:var(--accent)">Tap pour choisir · Glisser-déposer supporté</div>
+          </div>
+          <input type="file" id="fit-file-input" accept=".fit" multiple style="display:none" onchange="handleFITFiles(this.files)">
+          
+          <div class="input-row" style="margin-top:10px">
+            <div class="input-group">
+              <div class="input-label">FC Max personnelle</div>
+              <input type="number" class="input-field" id="max-hr" value="185" min="150" max="220">
+            </div>
+          </div>
+          <div id="fit-result" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Activités importées (FIT)</div>
+      <div id="fit-activities-list"></div>
+
+      <div class="card" style="background:rgba(74,154,186,.05);border-color:rgba(74,154,186,.2)">
+        <div class="card-body" style="padding-top:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">📱 Comment accéder aux fichiers FIT</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.7">
+            <b>Via USB (PC/Mac) :</b> Connecte la montre → dossier <code style="background:var(--surface3);padding:1px 5px;border-radius:3px">GARMIN/Activity/</code> → copier les .fit récents<br>
+            <b>Via Android :</b> Connecte en USB → MTP → même chemin → importer ici<br>
+            <b>Via Garmin Connect Web :</b> Activité → ⋯ → Télécharger l'original → choisir FIT
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSON TAB -->
+    <div id="garmin-tab-json" style="display:none">
+      <div class="card">
+        <div class="card-body" style="padding-top:12px">
+          <div class="upload-zone" id="json-drop-zone" onclick="document.getElementById('json-file-input').click()">
+            <div class="upload-icon">📊</div>
+            <div class="upload-label">Importer export Garmin Connect (.json)</div>
+            <div class="upload-sub">Données santé : sommeil · Body Battery · pas · stress</div>
+            <div class="upload-sub" style="margin-top:4px;color:var(--accent)">Supporte tous les formats d'export Garmin</div>
+          </div>
+          <input type="file" id="json-file-input" accept=".json,.csv" multiple style="display:none" onchange="handleJSONFiles(this.files)">
+          <div id="json-result" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Données santé importées</div>
+      <div id="json-health-list"></div>
+
+      <div class="card" style="background:rgba(74,154,186,.05);border-color:rgba(74,154,186,.2)">
+        <div class="card-body" style="padding-top:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">📱 Obtenir l'export Garmin JSON</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.8">
+            <b>Export activité individuelle :</b><br>
+            Garmin Connect app → Activité → ⋯ → Partager → Télécharger<br><br>
+            <b>Export santé (sommeil, Body Battery, pas) :</b><br>
+            connect.garmin.com → Santé → sélectionner plage → Exporter CSV/JSON<br><br>
+            <b>Export global (toutes données) :</b><br>
+            connect.garmin.com → Profil → Données personnelles → Exporter<br>
+            <i>(peut prendre 24-48h à générer)</i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API TAB -->
+    <div id="garmin-tab-api" style="display:none">
+      <div class="card" style="background:rgba(224,123,57,.08);border-color:rgba(224,123,57,.3)">
+        <div class="card-body" style="padding-top:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:6px">⚠️ Avertissement important</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.6">
+            Cette méthode utilise l'API <b>non-officielle</b> de Garmin Connect — la même utilisée par des outils comme <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">garminconnect</code> (Python) ou Tapiriik. Elle <b>n'est pas garantie</b> de fonctionner dans le temps et va à l'encontre des CGU de Garmin.<br><br>
+            <b>Recommandation :</b> Utilisez les imports FIT + JSON pour une solution pérenne. L'API est ici pour le confort.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="api-login-card">
+        <div class="card-body" style="padding-top:12px">
+          <div class="input-label">Email Garmin Connect</div>
+          <input type="email" class="input-field" id="api-email" placeholder="prenom@email.com" style="margin-bottom:8px">
+          <div class="input-label">Mot de passe</div>
+          <input type="password" class="input-field" id="api-password" placeholder="••••••••" style="margin-bottom:8px">
+          <div class="input-label">Synchroniser les</div>
+          <select class="input-field" id="api-days" style="margin-bottom:8px">
+            <option value="7">7 derniers jours</option>
+            <option value="14" selected>14 derniers jours</option>
+            <option value="30">30 derniers jours</option>
+          </select>
+          <button class="btn btn-garmin" onclick="startAPISync()">🔌 Connexion & Sync Garmin</button>
+          <div id="api-result" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="card" id="api-status-card" style="display:none">
+        <div class="card-body" style="padding-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#1dc37c">✅ Connecté</div>
+              <div id="api-user-info" style="font-size:11px;color:var(--text3)"></div>
+            </div>
+            <button class="btn-sm btn-danger" onclick="apiLogout()">Déconnecter</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-garmin" onclick="startAPISync(true)" style="margin-top:8px">🔄 Re-synchroniser</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ PAGE: ANALYSE ═══════════════════ -->
+<div class="page" id="page-analytics">
+  <div class="header">
+    <div class="header-title">📊 Analyse & Fatigue</div>
+    <div class="header-sub">Plan prévu vs réalisé · Charge · Récupération</div>
+  </div>
+  <div class="page-content">
+    
+    <!-- Fatigue & Recovery -->
+    <div class="metric-grid">
+      <div class="metric-box">
+        <div class="metric-value" id="ana-fatigue" style="color:var(--orange)">—</div>
+        <div class="metric-label">Score fatigue</div>
+        <div class="metric-sub" id="ana-fatigue-sub" style="color:var(--text3)">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-value" id="ana-recovery" style="color:var(--accent)">—</div>
+        <div class="metric-label">Score récupération</div>
+        <div class="metric-sub" id="ana-recovery-sub" style="color:var(--text3)">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-value" id="ana-achille" style="color:var(--accent)">—</div>
+        <div class="metric-label">Risque Achille</div>
+        <div class="metric-sub" id="ana-impact" style="color:var(--text3)">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-value" id="ana-sleep" style="color:var(--blue)">—</div>
+        <div class="metric-label">Sommeil moy.</div>
+        <div class="metric-sub" id="ana-sleep-sub" style="color:var(--text3)">—</div>
+      </div>
+    </div>
+
+    <!-- Fatigue gauge -->
+    <div class="card">
+      <div class="card-body" style="padding-top:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">Charge hebdomadaire cumulative</div>
+        <div class="fatigue-wrap">
+          <div class="fatigue-bar"><div class="fatigue-fill" id="fatigue-fill" style="width:0%;background:var(--accent)"></div></div>
+          <div class="fatigue-labels"><span>Repos</span><span>Optimal</span><span>Surchargé</span></div>
+        </div>
+        <div id="body-battery-display"></div>
+      </div>
+    </div>
+
+    <!-- Plan vs Réalisé -->
+    <div class="section-title">Plan prévu vs réalisé (semaine en cours)</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:4px" id="plan-vs-real">
+        <div style="font-size:11px;color:var(--text3);padding:8px 0">Synchronise des données Garmin pour voir la comparaison.</div>
+      </div>
+    </div>
+
+    <!-- HR Zones (if running data) -->
+    <div class="section-title">Zones FC — dernières séances course</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:10px" id="hr-zones-display">
+        <div style="font-size:11px;color:var(--text3)">Importe des fichiers FIT pour voir les zones FC.</div>
+      </div>
+    </div>
+
+    <!-- Weight -->
+    <div class="section-title">Évolution du poids</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:10px">
+        <div id="weight-display-text" style="text-align:center;padding:8px 0">
+          <span id="weight-big" style="font-size:42px;font-weight:800;color:var(--text)">—</span>
+          <span style="font-size:16px;color:var(--text3)"> kg</span>
+          <div id="weight-delta-text" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+        </div>
+        <canvas id="weight-chart" height="140"></canvas>
+      </div>
+    </div>
+
+    <!-- Sleep detail -->
+    <div class="section-title">Qualité du sommeil</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:10px" id="sleep-detail"></div>
+    </div>
+
+    <!-- Pace compliance -->
+    <div class="section-title">Respect des allures (course)</div>
+    <div class="card">
+      <div class="card-body" style="padding-top:10px" id="pace-compliance">
+        <div style="font-size:11px;color:var(--text3)">Importe des fichiers FIT pour analyser les allures.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PLAN DATA
+// ═══════════════════════════════════════════════════════════
+const PLAN = [
+  { week:1, phase:1, label:'S1 — Mise en route', dates:'22–28 juin 2026', start:'2026-06-22', focus:'Prise de marques, technique KB, habitudes', load:35,
+    sessions:[
+      {day:'LUN',name:'Force A — KB bas du corps',type:'force',detail:'Goblet squat 3×12 · Deadlift KB 3×10 · Fentes latérales · Hip hinge · Achille excentrique',duration:45},
+      {day:'MAR',name:'Course EF 30 min',type:'run',detail:'Zone 2 · allure conversation · Protocole Achille avant départ',duration:35},
+      {day:'MER',name:'Vélotaf Soignes',type:'cardio',detail:'~30km · zone 2 naturelle · récupération active',duration:90},
+      {day:'JEU',name:'Force B — KB haut + gainage',type:'force',detail:'KB press 3×10 · Farmer carry 3×20m · Halo 3×8 · Pallof press · TGU sans KB (technique)',duration:45},
+      {day:'VEN',name:'Mobilité / récupération',type:'mob',detail:'Thread the needle · Pigeon swissball · Hip flexor · Ankle mobility · Foam roller',duration:25},
+      {day:'SAM',name:'Spinning aérobie',type:'cardio',detail:'35 min zone 2 · après 13h (garde Victor)',duration:35},
+      {day:'DIM',name:'Repos complet',type:'rest',detail:'Protocole Achille uniquement'}
+    ], note:'⚠️ TGU sans KB S1 — technique au miroir. Beach volley mardi soir possible (compter haute intensité).'},
+  { week:2, phase:1, label:'S2 — Volume progressif', dates:'29 juin – 5 juillet 2026', start:'2026-06-29', focus:'Montée en charge, TGU avec KB 12kg', load:50,
+    sessions:[
+      {day:'LUN',name:'Force A — progressif',type:'force',detail:'Goblet squat 4×12 · Deadlift KB 4×10 · Suitcase carry 3×20m · Squat jump → goblet · Around the world 2×8',duration:50},
+      {day:'MAR',name:'Course EF 40 min',type:'run',detail:'Zone 2 · terrain plat · Achille silencieux requis',duration:45},
+      {day:'MER',name:'Vélotaf',type:'cardio',detail:'Soignes 30km',duration:90},
+      {day:'JEU',name:'Force B + TGU KB12',type:'force',detail:'KB press 3×10 · TGU 12kg 2×3/côté · Farmer carry 4×20m · Halo 3×10 · Gainage',duration:55},
+      {day:'VEN',name:'Intervalles 2×6×30"/30"',type:'run',detail:'10 min EF + 2×6×30"/30" récup active + 10 min EF',duration:40},
+      {day:'SAM',name:'Spinning + mobilité',type:'cardio',detail:'40 min vélo + 15 min mobilité · après 13h',duration:55},
+      {day:'DIM',name:'Repos',type:'rest',detail:'Récupération + Achille'}
+    ], note:'📈 TGU avec 12kg si technique validée S1. Intervalles : rester sur base connue.'},
+  { week:3, phase:1, label:'S3 — Consolidation', dates:'6–12 juillet 2026', start:'2026-07-06', focus:'Dernière semaine équipement complet avant vacances', load:60,
+    sessions:[
+      {day:'LUN',name:'Force A — intensité KB',type:'force',detail:'Goblet squat 4×12 KB24 · Deadlift KB32 4×10 · Suitcase carry 4×20m · Squat jump goblet KB20',duration:55},
+      {day:'MAR',name:'Course 45 min EF',type:'run',detail:'Zone 2 · peut inclure 1km soutenu en milieu',duration:50},
+      {day:'MER',name:'Vélotaf',type:'cardio',detail:'Soignes · dernière avant vacances',duration:90},
+      {day:'JEU',name:'Force B + TGU 14kg',type:'force',detail:'KB press 4×10 · TGU 14kg 3×3/côté · Farmer carry KB24 · Around the world KB16',duration:60},
+      {day:'VEN',name:'Intervalles avancés',type:'run',detail:'2×8×30"/30" ou 2×6×45"/45" · progression depuis S2',duration:45},
+      {day:'SAM',name:'Circuit complet KB',type:'force',detail:'5 exercices × 4 tours · gilet lesté si Achille ok',duration:50},
+      {day:'DIM',name:'Repos / bilan S1-S3',type:'rest',detail:'Départ vacances ~7 juillet'}
+    ], note:'🧳 Préparer KB 16+20kg + bandes + corde pour valises.'},
+  { week:4, phase:2, label:'S4 — Vacances (début)', dates:'7–13 juillet 2026', start:'2026-07-07', focus:'Maintien actif · course + BW + bandes + KB 16/20kg', load:35,
+    sessions:[
+      {day:'LUN',name:'Course 30 min EF',type:'run',detail:'Zone 2 · terrain inconnu → prudence Achille'},
+      {day:'MAR',name:'Circuit BW + bandes',type:'force',detail:'Pompes · Dips · Squats · Hip thrust bandes · Gainage · 4 tours'},
+      {day:'MER',name:'Repos actif',type:'rest',detail:'Marche · vacances · Achille maintenu'},
+      {day:'JEU',name:'KB 16+20kg circuit',type:'force',detail:'Swing KB20 · Goblet KB16 · Halo · Farmer carry · TGU KB16'},
+      {day:'VEN',name:'Course 30-35 min',type:'run',detail:'EF ou légers intervalles 2×4×30"/30"'},
+      {day:'SAM',name:'BW + mobilité',type:'mob',detail:'Mobilité 30 min + BW léger'},
+      {day:'DIM',name:'Repos',type:'rest',detail:'Récup vacances'}
+    ], note:'☀️ 3 séances actives minimum. Protocole Achille QUOTIDIEN maintenu absolument.'},
+  { week:5, phase:2, label:'S5 — Vacances (retour 24/07)', dates:'14–20 juillet 2026', start:'2026-07-14', focus:'Maintien · dernier ligne droite vacances', load:40,
+    sessions:[
+      {day:'LUN',name:'Course 35 min',type:'run',detail:'Zone 2 · inclure 2×4×45"/45" si envie'},
+      {day:'MAR',name:'Circuit KB 16+20kg',type:'force',detail:'Swing · Goblet · Press · Carry · TGU · 5ex × 4 tours'},
+      {day:'MER',name:'Repos actif',type:'rest',detail:'Récup + Achille'},
+      {day:'JEU',name:'BW + bandes',type:'force',detail:'Squat jump · Hip thrust · Pompes · Tirage bande · 4 tours'},
+      {day:'VEN',name:'Course 40 min EF',type:'run',detail:'Dernier run en voyage · prépare relance S6'},
+      {day:'SAM',name:'Retour Belgique 24/07',type:'rest',detail:'Voyage = repos · Bilan période vacances'},
+      {day:'DIM',name:'Repos',type:'rest',detail:'Récup post-voyage'}
+    ], note:'✈️ Retour Belgique 24 juillet. Reprendre équipement complet dès S6.'},
+  { week:6, phase:3, label:'S6 — Relance équipement complet', dates:'21–27 juillet 2026', start:'2026-07-21', focus:'Réintégration KB lourds · -20% volume vs S3', load:55,
+    sessions:[
+      {day:'LUN',name:'Force A — réintégration',type:'force',detail:'Goblet squat KB20 3×12 · Deadlift KB24 3×10 · Suitcase carry KB20 3×20m',duration:45},
+      {day:'MAR',name:'Course EF 35 min',type:'run',detail:'Reprise douce · zone 2 uniquement · Achille check-in',duration:40},
+      {day:'MER',name:'Vélotaf reprise',type:'cardio',detail:'Retour Soignes ! · bienvenue chez soi',duration:90},
+      {day:'JEU',name:'Force B + TGU',type:'force',detail:'KB press · TGU KB14 3×3/côté · Farmer carry · Around the world · Halo',duration:50},
+      {day:'VEN',name:'Intervalles relance',type:'run',detail:'2×6×30"/30" reprise · ne pas dépasser niveau S2',duration:38},
+      {day:'SAM',name:'Spinning + mob',type:'cardio',detail:'35 min zone 2-3 + 15 min mobilité · après 13h',duration:50},
+      {day:'DIM',name:'Repos',type:'rest',detail:'Récup post-vacances'}
+    ], note:'⚡ Semaine transition — volume -20% vs S3. Revalider les sensations KB.'},
+  { week:7, phase:3, label:'S7 — Charge progressive', dates:'28 juillet – 3 août 2026', start:'2026-07-28', focus:'Retour niveau S3 · gilet lesté introduction', load:65,
+    sessions:[
+      {day:'LUN',name:'Force A — niveau S3',type:'force',detail:'Goblet squat KB24 4×12 · Deadlift KB32 4×10 · Suitcase carry KB24 · Squat jump goblet',duration:55},
+      {day:'MAR',name:'Course EF 45 min',type:'run',detail:'Retour 45 min · terrain plat · Achille silencieux requis',duration:50},
+      {day:'MER',name:'Vélotaf',type:'cardio',detail:'Soignes 30km',duration:90},
+      {day:'JEU',name:'Force B + TGU 16kg',type:'force',detail:'TGU KB16 3×3/côté · Press · Farmer carry KB24 · Circuit complet',duration:60},
+      {day:'VEN',name:'Intervalles avancés',type:'run',detail:'2×8×30"/30" ou 1×10×30"/30"',duration:45},
+      {day:'SAM',name:'Circuit KB + gilet 5kg',type:'force',detail:'Fentes latérales · Squat jump · 4 tours · gilet 5kg si Achille ok · après 13h',duration:50},
+      {day:'DIM',name:'Repos',type:'rest',detail:'Récup active · mobilité libre'}
+    ], note:'🎽 Gilet lesté : 5kg max, exercices non-pliométriques uniquement si Achille ok.'},
+  { week:8, phase:4, label:'S8 — Spécificité volley', dates:'3–9 août 2026', start:'2026-08-03', focus:'Sauts verticaux · déplacements latéraux · explosivité', load:72,
+    sessions:[
+      {day:'LUN',name:'Circuit KB sauts + explosivité',type:'force',detail:'Squat jump KB · Fentes latérales explosives · Swing KB32 4×15 · TGU KB20 · Gilet 5-8kg',duration:55},
+      {day:'MAR',name:'Course 40 min mixte',type:'run',detail:'EF 20min + 2×6×45"/45" + 10min EF · réactivité',duration:45},
+      {day:'MER',name:'Vélotaf ou spinning',type:'cardio',detail:'Maintien cardio · récup jambes',duration:60},
+      {day:'JEU',name:'Force volley-specific',type:'force',detail:'Farmer carry KB32 4×30m · Around the world KB20 · Pliométrie · Gainage dynamique',duration:55},
+      {day:'VEN',name:'Intervalles courts intensifs',type:'run',detail:'3×6×20"/20" haute intensité ou navettes 5m',duration:35},
+      {day:'SAM',name:'Sauts + mob',type:'force',detail:'Sauts verticaux 3×8 · réceptions souples · mobilité épaules + hanches · après 13h',duration:45},
+      {day:'DIM',name:'Repos complet',type:'rest',detail:'Préserver fraîcheur pour S9'}
+    ], note:'🏐 Inclure des sauts verticaux, déplacements latéraux, travail de réception.'},
+  { week:9, phase:4, label:'S9 — Affûtage pré-volley', dates:'10–16 août 2026', start:'2026-08-10', focus:'Fraîcheur maximale · volume -25% · qualité des sensations', load:55,
+    sessions:[
+      {day:'LUN',name:'Force A allégée',type:'force',detail:'Volume -25% · KB swing + goblet + carry · pas de TGU lourd',duration:40},
+      {day:'MAR',name:'Course courte 25 min',type:'run',detail:'EF uniquement · jambes légères',duration:28},
+      {day:'MER',name:'Vélotaf ou repos',type:'cardio',detail:'Selon sensations · récup prioritaire',duration:60},
+      {day:'JEU',name:'Activation pré-volley',type:'force',detail:'Éducatifs · sauts qualitatifs 3×5 · déplacements · bands épaules · léger',duration:30},
+      {day:'VEN',name:'Repos ou marche',type:'rest',detail:'Repos stratégique avant première séance volley'},
+      {day:'SAM',name:'Repos ou mobilité',type:'mob',detail:'Mobilité complète · préparer mentalement la reprise',duration:20},
+      {day:'DIM',name:'Repos',type:'rest',detail:'🏐 Reprise volley cette semaine !'}
+    ], note:'🚨 Affûtage : réduire le volume, maintenir intensité. Arriver frais (~17 août).'},
+  { week:10, phase:5, label:'S10 — Reprise volley 🏐', dates:'17–23 août 2026', start:'2026-08-17', focus:'Volley 2-3x/sem + maintien physique léger', load:60,
+    sessions:[
+      {day:'LUN/MER/VEN',name:'🏐 Entraînements volley',type:'volley',detail:'Priorité absolue · 2-3 séances/sem · arriver reposé'},
+      {day:'HORS VOLLEY',name:'Force légère 1×/sem',type:'force',detail:'KB swing + gainage 25-30 min · pas la veille d\'un volley'},
+      {day:'HORS VOLLEY',name:'Course courte optionnelle',type:'run',detail:'EF 25 min si envie · jamais avant un volley'},
+      {day:'HORS VOLLEY',name:'Vélotaf',type:'cardio',detail:'Rythme normal · cardio bas naturel'}
+    ], note:'🏐 Objectif atteint ! Le physique est au service du volley.'}
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE & STORAGE
+// ═══════════════════════════════════════════════════════════
+let selRPE=null, selAchille=null, selStatus='done';
+function getLogs(){try{return JSON.parse(localStorage.getItem('volley_logs')||'[]')}catch{return[]}}
+function saveLogs(l){localStorage.setItem('volley_logs',JSON.stringify(l))}
+function getWeights(){try{return JSON.parse(localStorage.getItem('volley_weights')||'[]')}catch{return[]}}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+const today=()=>new Date().toISOString().slice(0,10);
+function formatDate(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long'});}
+function getCurrentWeek(){const t=new Date(today()+'T12:00:00');for(let i=PLAN.length-1;i>=0;i--){if(t>=new Date(PLAN[i].start+'T00:00:00'))return PLAN[i];}return PLAN[0];}
+function getTypeTag(type){const m={force:'FORCE',run:'COURSE',cardio:'CARDIO',volley:'VOLLEY',mob:'MOBILITÉ',rest:'REPOS'};return`<span class="tag tag-${type}">${m[type]||type.toUpperCase()}</span>`;}
+function getPhaseTag(p){const n=['','Fondation','Vacances','Relance','Spécificité','Intégration'];return`<span class="phase-badge phase-tag-${p}">${n[p]}</span>`;}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatMin(m){if(!m)return'—';const h=Math.floor(m/60),min=m%60;return h>0?`${h}h${min>0?min+'min':''}`:`${min}min`;}
+
+// ═══════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='analytics')renderAnalytics();
+  if(id==='log')renderRecentLogs();
+  if(id==='garmin')renderGarminStatus();
+}
+
+// ═══════════════════════════════════════════════════════════
+// TODAY
+// ═══════════════════════════════════════════════════════════
+function renderHome(){
+  const t=today();
+  document.getElementById('today-header').textContent=cap(formatDate(t));
+  const week=getCurrentWeek();
+  const dayNames=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const dayName=dayNames[new Date(t+'T12:00:00').getDay()];
+  const session=week.sessions.find(s=>s.day.toUpperCase().includes(dayName.toUpperCase()));
+  
+  // Garmin today summary
+  const gd=window.GarminSync.getData();
+  const todayGarmin=gd.activities.filter(a=>a.date===t);
+  const todayHealth=gd.health.find(h=>h.date===t);
+  let garminHtml='';
+  if(todayGarmin.length||todayHealth){
+    garminHtml=`<div class="garmin-card"><div class="garmin-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Garmin — Aujourd'hui</div>`;
+    if(todayHealth){
+      if(todayHealth.bodyBattery?.high)garminHtml+=`<span class="garmin-stat">🔋 Body Battery : ${todayHealth.bodyBattery.high}</span>`;
+      if(todayHealth.steps)garminHtml+=`<span class="garmin-stat">👟 ${todayHealth.steps.toLocaleString()} pas</span>`;
+      if(todayHealth.restingHR)garminHtml+=`<span class="garmin-stat">❤️ FC repos : ${todayHealth.restingHR} bpm</span>`;
+      if(todayHealth.stressAvg)garminHtml+=`<span class="garmin-stat">😤 Stress : ${todayHealth.stressAvg}/100</span>`;
+    }
+    todayGarmin.forEach(a=>{garminHtml+=`<span class="garmin-stat">✅ ${a.sport} · ${a.durationMin}min${a.avgHR?` · FC${a.avgHR}`:''}</span>`;});
+    garminHtml+=`</div>`;
+    // Update Achille tip with real data
+    const week7=window.GarminSync.analyzeWeek(week.start,today());
+    if(week7.achilleRisk!=='FAIBLE')document.getElementById('achille-garmin-tip').style.color=week7.achilleColor;
+    document.getElementById('achille-garmin-tip').textContent=`⚡ Charge impact semaine : ${week7.highImpactMin}min · Risque Achille : ${week7.achilleRisk}`;
+  }
+  document.getElementById('garmin-today-summary').innerHTML=garminHtml;
+  
+  // Today session
+  let html='';
+  if(session){
+    html+=`<div class="today-box"><div class="today-label">📍 Séance du jour</div><div class="today-session">${getTypeTag(session.type)} ${session.name}</div><div class="today-detail">${session.detail}</div>${session.duration?`<div style="font-size:11px;color:var(--text3);margin-top:5px">⏱ ~${session.duration} min</div>`:''}</div>`;
+  } else {
+    html+=`<div class="today-box"><div class="today-label">📍 Aujourd'hui</div><div class="today-session">Repos / flexible</div><div class="today-detail">Protocole Achille maintenu. Vélotaf ou mobilité libre.</div></div>`;
+  }
+  
+  // Week overview
+  html+=`<div class="card"><div class="card-header" style="cursor:default"><div><div style="margin-bottom:4px">${getPhaseTag(week.phase)}</div><div class="card-title">${week.label}</div><div class="card-sub">${week.dates}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:${week.load<50?'var(--blue)':week.load<65?'var(--accent)':week.load<75?'var(--gold)':'var(--orange)'}">${week.load}<span style="font-size:11px;font-weight:400">%</span></div><div style="font-size:9px;color:var(--text3)">charge</div></div></div><div class="card-body">`;
+  week.sessions.forEach(s=>{html+=`<div class="session-row"><div class="session-day">${s.day}</div><div class="session-content"><div class="session-name">${getTypeTag(s.type)} ${s.name}</div></div></div>`;});
+  if(week.note)html+=`<div style="font-size:11px;color:var(--text3);padding:7px 0;border-top:1px solid var(--border);margin-top:4px">${week.note}</div>`;
+  html+=`</div></div>`;
+  document.getElementById('today-content').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PLAN
+// ═══════════════════════════════════════════════════════════
+function renderPlan(){
+  let html='';
+  PLAN.forEach((week,idx)=>{
+    const cw=getCurrentWeek();
+    const isCurrent=week.week===cw.week;
+    const isPast=new Date(week.start)<new Date(today())&&!isCurrent;
+    const lc=week.load<50?'var(--blue)':week.load<65?'var(--accent)':week.load<75?'var(--gold)':'var(--orange)';
+    html+=`<div class="card${isCurrent?' expanded':''}" id="wc-${idx}" style="${isCurrent?'border-color:var(--accent)':''}">`;
+    html+=`<div class="card-header" onclick="toggleWeek(${idx})">`;
+    html+=`<div>${isCurrent?'<div style="font-size:9px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:3px">▶ EN COURS</div>':''}`;
+    html+=`<div class="card-title" style="${isPast?'color:var(--text3)':''}">${week.label}</div>`;
+    html+=`<div class="card-sub">${week.dates}</div><div style="margin-top:4px">${getPhaseTag(week.phase)}</div></div>`;
+    html+=`<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:${lc}">${week.load}<span style="font-size:10px;font-weight:400">%</span></div><div style="font-size:9px;color:var(--text3)">charge</div><svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top:4px"><polyline points="6 9 12 15 18 9"/></svg></div>`;
+    html+=`</div><div class="card-body week-content" id="wc-body-${idx}" style="display:${isCurrent?'block':'none'}">`;
+    html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:8px">🎯 ${week.focus}</div>`;
+    week.sessions.forEach(s=>{html+=`<div class="session-row"><div class="session-day">${s.day}</div><div class="session-content"><div class="session-name">${getTypeTag(s.type)} ${s.name}</div><div class="session-detail">${s.detail}</div>${s.duration?`<div style="font-size:10px;color:var(--text3);margin-top:1px">⏱ ~${s.duration}min</div>`:''}</div></div>`;});
+    if(week.note)html+=`<div style="font-size:11px;color:var(--text3);padding:7px 0;border-top:1px solid var(--border);margin-top:4px">${week.note}</div>`;
+    html+=`</div></div>`;
+  });
+  document.getElementById('plan-content').innerHTML=html;
+}
+function toggleWeek(idx){
+  const body=document.getElementById('wc-body-'+idx);
+  const card=document.getElementById('wc-'+idx);
+  const vis=body.style.display!=='none';
+  body.style.display=vis?'none':'block';
+  card.classList.toggle('expanded',!vis);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LOGGER
+// ═══════════════════════════════════════════════════════════
+function selectRPE(n){selRPE=n;document.querySelectorAll('#rpe-grid .rpe-btn').forEach((b,i)=>b.classList.toggle('selected',i+1===n));}
+function selectAchille(n){selAchille=n;document.querySelectorAll('#achille-grid .rpe-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.textContent)===n||(b.textContent==='8+'&&n===8)));}
+function selectStatus(s){selStatus=s;['done','skip','moved'].forEach(k=>{const b=document.getElementById('sb-'+k);b.className='status-btn'+(k===s?` sel-${k}`:'');});}
+
+function saveLog(){
+  const date=document.getElementById('log-date').value;
+  const session=document.getElementById('log-session').value;
+  if(!date||!session){alert('Date et séance requis');return;}
+  const weight=document.getElementById('log-weight').value;
+  const logs=getLogs();
+  logs.unshift({id:Date.now(),date,session,status:selStatus,rpe:selRPE,achille:selAchille,weight:weight?parseFloat(weight):null,duration:document.getElementById('log-duration').value?parseInt(document.getElementById('log-duration').value):null,sleep:document.getElementById('log-sleep').value?parseInt(document.getElementById('log-sleep').value):null,notes:document.getElementById('log-notes').value});
+  saveLogs(logs);
+  if(weight){const w=getWeights();w.push({date,weight:parseFloat(weight)});w.sort((a,b)=>a.date.localeCompare(b.date));localStorage.setItem('volley_weights',JSON.stringify(w));}
+  ['log-session','log-weight','log-duration','log-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('log-sleep').value='';
+  selRPE=null;selAchille=null;selStatus='done';
+  document.querySelectorAll('.rpe-btn').forEach(b=>b.classList.remove('selected'));
+  selectStatus('done');
+  renderRecentLogs();renderHome();
+  alert('✅ Séance enregistrée !');
+}
+
+function renderRecentLogs(){
+  const logs=getLogs().slice(0,10);
+  if(!logs.length){document.getElementById('recent-logs').innerHTML='<div style="color:var(--text3);font-size:12px;padding:10px 0">Aucune séance logguée.</div>';return;}
+  const sl={done:'✅ Faite',skip:'❌ Skippée',moved:'🔄 Déplacée'};
+  const sc={done:'status-done',skip:'status-skip',moved:'status-moved'};
+  const rc=r=>!r?'':r<=4?'rpe-low':r<=6?'rpe-med':r<=8?'rpe-high':'rpe-max';
+  document.getElementById('recent-logs').innerHTML=logs.map(l=>`<div class="log-entry"><div><div class="log-date">${formatDate(l.date)}</div><div class="log-name">${l.session}</div><div class="${sc[l.status]||''}">${sl[l.status]||l.status}${l.duration?` · ${l.duration}min`:''}${l.weight?` · ${l.weight}kg`:''}</div>${l.notes?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${l.notes}</div>`:''}</div>${l.rpe?`<div class="log-rpe ${rc(l.rpe)}">${l.rpe}</div>`:''}</div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// GARMIN TAB
+// ═══════════════════════════════════════════════════════════
+function showGarminTab(tab){
+  ['fit','json','api'].forEach(t=>{
+    document.getElementById('garmin-tab-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('gtab-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+function renderGarminStatus(){
+  const db=window.GarminSync.getData();
+  const creds=window.GarminSync.getCreds();
+  if(db.lastSync){
+    const d=new Date(db.lastSync);
+    document.getElementById('garmin-last-sync').textContent=`Dernière sync : ${d.toLocaleDateString('fr-BE')} ${d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'})} · ${db.activities.length} activités · ${db.health.length} jours santé`;
+  }
+  if(creds?.loggedIn){
+    document.getElementById('api-login-card').style.display='none';
+    document.getElementById('api-status-card').style.display='block';
+    document.getElementById('api-user-info').textContent=`Connecté : ${creds.username} · ${new Date(creds.loginDate).toLocaleDateString('fr-BE')}`;
+  }
+  renderFITActivities();
+  renderHealthList();
+}
+
+async function handleFITFiles(files){
+  const maxHR=parseInt(document.getElementById('max-hr').value)||185;
+  const res=document.getElementById('fit-result');
+  res.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Parsing en cours...</div>';
+  let total=0,errors=[];
+  for(const file of files){
+    try{const r=await window.GarminSync.importFITFile(file,maxHR);total+=r.count;}
+    catch(e){errors.push(`${file.name}: ${e.message}`);}
+  }
+  res.innerHTML=`<div style="color:var(--accent);font-size:12px;padding:8px;background:rgba(126,184,122,.1);border-radius:6px">✅ ${total} activité(s) importée(s)${errors.length?`<br><span style="color:var(--orange)">${errors.join('<br>')}</span>`:''}</div>`;
+  renderFITActivities();
+  renderHome();
+  document.getElementById('garmin-badge').style.display='';
+  document.getElementById('garmin-badge').textContent=window.GarminSync.getData().activities.length;
+}
+
+async function handleJSONFiles(files){
+  const res=document.getElementById('json-result');
+  res.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Import en cours...</div>';
+  let total=0,errors=[];
+  for(const file of files){
+    try{const r=await window.GarminSync.importGarminJSON(file);total+=r.count;}
+    catch(e){errors.push(`${file.name}: ${e.message}`);}
+  }
+  res.innerHTML=`<div style="color:var(--accent);font-size:12px;padding:8px;background:rgba(126,184,122,.1);border-radius:6px">✅ ${total} entrée(s) importée(s)${errors.length?`<br><span style="color:var(--orange)">${errors.join('<br>')}</span>`:''}</div>`;
+  renderHealthList();
+  renderHome();
+}
+
+function renderFITActivities(){
+  const db=window.GarminSync.getData();
+  const acts=db.activities.filter(a=>a.source==='fit').slice(0,20);
+  if(!acts.length){document.getElementById('fit-activities-list').innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Aucune activité FIT importée.</div>';return;}
+  const zColors=['#3a8af0','#50d060','#f0c830','#f08030','#f03030'];
+  document.getElementById('fit-activities-list').innerHTML=acts.map(a=>`
+    <div class="card" style="margin-bottom:8px">
+      <div class="card-body" style="padding-top:10px;padding-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:13px;font-weight:700">${a.sport} · ${a.date}</div>
+            <div style="font-size:11px;color:var(--text3)">${a.durationMin}min${a.distanceKm?` · ${a.distanceKm}km`:''}${a.calories?` · ${a.calories}kcal`:''}</div>
+          </div>
+          <div style="text-align:right">
+            ${a.avgHR?`<div style="font-size:16px;font-weight:700;color:var(--red)">❤️ ${a.avgHR}</div>`:''}
+            ${a.paceStats?`<div style="font-size:10px;color:var(--text3)">${a.paceStats.avgPaceStr}</div>`:''}
+          </div>
+        </div>
+        ${a.hrZones&&a.hrZones.some(z=>z>0)?`
+        <div style="margin-top:8px">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px">Zones FC</div>
+          <div style="display:flex;gap:2px;height:24px;border-radius:4px;overflow:hidden">
+            ${a.hrZones.map((z,i)=>z>0?`<div style="flex:${z};background:${zColors[i]};display:flex;align-items:center;justify-content:center"><span style="font-size:8px;font-weight:700;color:white">${z>8?`Z${i+1}`:''}</span></div>`:``).join('')}
+          </div>
+          <div style="display:flex;gap:4px;margin-top:2px">${a.hrZones.map((z,i)=>`<span style="font-size:9px;color:${zColors[i]}">Z${i+1}:${z}%</span>`).join('')}</div>
+        </div>`:``}
+        ${a.achilleRisk==='elevated'?`<div style="font-size:10px;color:var(--orange);margin-top:4px">⚠️ Charge Achille élevée sur cette séance</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function renderHealthList(){
+  const db=window.GarminSync.getData();
+  const health=db.health.slice(-10).reverse();
+  if(!health.length){document.getElementById('json-health-list').innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Aucune donnée santé importée.</div>';return;}
+  document.getElementById('json-health-list').innerHTML=health.map(h=>`
+    <div class="card" style="margin-bottom:8px">
+      <div class="card-body" style="padding-top:10px;padding-bottom:10px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px">${formatDate(h.date)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${h.steps?`<span class="garmin-stat">👟 ${h.steps.toLocaleString()} pas</span>`:''}
+          ${h.restingHR?`<span class="garmin-stat">❤️ FC repos ${h.restingHR}</span>`:''}
+          ${h.bodyBattery?.high?`<span class="garmin-stat">🔋 BB ${h.bodyBattery.low}→${h.bodyBattery.high}</span>`:''}
+          ${h.stressAvg?`<span class="garmin-stat">😤 Stress ${h.stressAvg}</span>`:''}
+          ${h.sleep?.durationMin?`<span class="garmin-stat">😴 ${formatMin(h.sleep.durationMin)}${h.sleep.score?` · score ${h.sleep.score}`:''}</span>`:''}
+          ${h.sleep?.deepMin?`<span class="garmin-stat" style="background:rgba(58,74,154,.15);color:#7080d0">🌙 Profond ${formatMin(h.sleep.deepMin)}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function startAPISync(reSync=false){
+  const res=document.getElementById('api-result');
+  const email=document.getElementById('api-email').value;
+  const password=document.getElementById('api-password').value;
+  const days=parseInt(document.getElementById('api-days').value);
+  
+  if(!reSync&&(!email||!password)){alert('Email et mot de passe requis');return;}
+  res.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Connexion Garmin...</div>';
+  
+  try{
+    if(!reSync)await window.GarminSync.apiLogin(email,password);
+    res.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Synchronisation en cours...</div>';
+    const r=await window.GarminSync.syncActivities(days);
+    res.innerHTML=`<div style="color:var(--accent);font-size:12px;padding:8px;background:rgba(126,184,122,.1);border-radius:6px">✅ ${r.count} entrée(s) synchronisée(s)</div>`;
+    renderGarminStatus();renderHome();
+  }catch(e){
+    res.innerHTML=`<div style="color:var(--orange);font-size:11px;padding:8px;background:rgba(224,123,57,.1);border-radius:6px">❌ ${e.message}</div>`;
+  }
+}
+function apiLogout(){window.GarminSync.saveCreds(null);renderGarminStatus();}
+
+// Drag & drop
+document.addEventListener('DOMContentLoaded',()=>{
+  ['fit-drop-zone','json-drop-zone'].forEach(id=>{
+    const zone=document.getElementById(id);
+    if(!zone)return;
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('drag-over');
+      const files=e.dataTransfer.files;
+      if(id==='fit-drop-zone')handleFITFiles(files);
+      else handleJSONFiles(files);
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════════════════════
+function renderAnalytics(){
+  const week=getCurrentWeek();
+  const weekEnd=new Date(new Date(week.start+'T12:00:00').getTime()+6*86400000).toISOString().slice(0,10);
+  const analysis=window.GarminSync.analyzeWeek(week.start,weekEnd);
+  const gd=window.GarminSync.getData();
+
+  // Fatigue metrics
+  const fcolor=analysis.fatigueScore<35?'var(--accent)':analysis.fatigueScore<60?'var(--gold)':analysis.fatigueScore<80?'var(--orange)':'var(--red)';
+  document.getElementById('ana-fatigue').textContent=analysis.fatigueScore||'—';
+  document.getElementById('ana-fatigue').style.color=fcolor;
+  document.getElementById('ana-fatigue-sub').textContent=analysis.fatigueScore<35?'Reposé':analysis.fatigueScore<60?'Optimal':analysis.fatigueScore<80?'Chargé':'Surcharge';
+  document.getElementById('ana-recovery').textContent=analysis.recoveryScore||'—';
+  document.getElementById('ana-recovery-sub').textContent=`Charge: ${analysis.totalDurationMin}min`;
+  document.getElementById('ana-achille').textContent=analysis.achilleRisk;
+  document.getElementById('ana-achille').style.color=analysis.achilleColor;
+  document.getElementById('ana-impact').textContent=`${analysis.highImpactMin}min d'impact`;
+  document.getElementById('ana-sleep').textContent=analysis.avgSleep?formatMin(analysis.avgSleep):'—';
+  document.getElementById('ana-sleep-sub').textContent=analysis.sleepDebt>0?`Déficit: ${formatMin(analysis.sleepDebt)}`:'Sommeil suffisant';
+
+  // Fatigue fill
+  const ff=document.getElementById('fatigue-fill');
+  ff.style.width=Math.min(100,analysis.fatigueScore)+'%';
+  ff.style.background=fcolor;
+
+  // Body battery
+  const bbDays=analysis.health.filter(h=>h.bodyBattery?.high);
+  if(bbDays.length){
+    const latest=bbDays[bbDays.length-1];
+    document.getElementById('body-battery-display').innerHTML=`<div style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--text3)">Body Battery :</span><span style="font-size:14px;font-weight:700;color:#1dc37c">${latest.bodyBattery.low} → ${latest.bodyBattery.high}</span><span style="font-size:11px;color:var(--text3)">(chargé: +${latest.bodyBattery.charged||'?'} · drainé: -${latest.bodyBattery.drained||'?'})</span></div>`;
+  } else document.getElementById('body-battery-display').innerHTML='';
+
+  // Plan vs Real
+  const planSessions=week.sessions.filter(s=>s.type!=='rest').map((s,i)=>({...s,date:new Date(new Date(week.start+'T12:00:00').getTime()+['LUN','MAR','MER','JEU','VEN','SAM','DIM'].indexOf(s.day.slice(0,3))*86400000).toISOString().slice(0,10)}));
+  const matched=window.GarminSync.matchToPlan(planSessions,gd.activities);
+  const matchHTML=matched.length?matched.map(m=>{
+    const icon=m.status==='matched'?'✅':m.status==='partial'?'🟡':'⭕';
+    const gClass=m.status==='matched'?'match-ok':m.status==='partial'?'match-partial':'match-missing';
+    return`<div class="match-row"><div class="match-icon">${icon}</div><div class="match-plan"><div style="font-size:11px;font-weight:700">${m.session.name}</div><div style="font-size:10px;color:var(--text3)">${m.session.day}</div></div><div class="match-garmin ${gClass}"><div style="font-size:10px;font-weight:600">${m.garminAct?m.garminAct.sport:'Non détecté'}</div><div style="font-size:9px;color:var(--text3)">${m.garminAct?`${m.garminAct.durationMin}min${m.garminAct.avgHR?` · ❤️${m.garminAct.avgHR}`:''}`:''}</div></div></div>`;
+  }).join(''):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Synchronise Garmin pour voir la comparaison.</div>';
+  document.getElementById('plan-vs-real').innerHTML=matchHTML;
+
+  // HR Zones
+  const runs=gd.activities.filter(a=>a.sport==='Running'&&a.hrZones&&a.hrZones.some(z=>z>0)).slice(-5);
+  const zColors=['#3a8af0','#50d060','#f0c830','#f08030','#f03030'];
+  const zLabels=['Z1 <60%','Z2 60-70%','Z3 70-80%','Z4 80-90%','Z5 >90%'];
+  if(runs.length){
+    let hrHtml='';
+    runs.forEach(r=>{
+      hrHtml+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:600;margin-bottom:3px">${r.date} · ${r.durationMin}min${r.paceStats?` · ${r.paceStats.avgPaceStr}`:''}</div>`;
+      hrHtml+=`<div style="display:flex;gap:2px;height:20px;border-radius:3px;overflow:hidden">${r.hrZones.map((z,i)=>z>0?`<div style="flex:${z};background:${zColors[i]};position:relative" title="${zLabels[i]}:${z}%"><span style="font-size:8px;font-weight:700;color:rgba(255,255,255,.8);padding:0 2px">${z>10?`${z}%`:''}</span></div>`:'').join('')}</div>`;
+      hrHtml+=`<div style="display:flex;gap:4px;margin-top:2px">${r.hrZones.map((z,i)=>`<span style="font-size:9px;color:${zColors[i]}">${z}%</span>`).join('')}</div>`;
+      const efOk=(r.hrZones[0]+r.hrZones[1])>70;
+      if(r.sessionType==='ef')hrHtml+=`<div style="font-size:10px;color:${efOk?'var(--accent)':'var(--orange)'};margin-top:2px">${efOk?'✅ Zone EF respectée':'⚠️ Trop intense pour EF — réduire l\'allure'}</div>`;
+      hrHtml+=`</div>`;
+    });
+    document.getElementById('hr-zones-display').innerHTML=hrHtml;
+  }
+
+  // Weight chart
+  const weights=getWeights();
+  if(weights.length){
+    document.getElementById('weight-big').textContent=weights[weights.length-1].weight.toFixed(1);
+    const delta=weights[weights.length-1].weight-100;
+    document.getElementById('weight-delta-text').textContent=delta<0?`↓ ${Math.abs(delta).toFixed(1)} kg depuis le départ · Objectif : 85–90 kg`:'Stable depuis le départ';
+    document.getElementById('weight-delta-text').style.color=delta<0?'var(--accent)':'var(--text3)';
+    drawWeightChart(weights);
+  }
+
+  // Sleep detail
+  const sleepDays=gd.health.filter(h=>h.sleep?.durationMin).slice(-7);
+  if(sleepDays.length){
+    let sh='<div style="font-size:11px;color:var(--text3);margin-bottom:6px">7 derniers jours Garmin</div>';
+    sleepDays.forEach(h=>{
+      const s=h.sleep;const tot=s.durationMin||1;
+      sh+=`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between"><span style="font-size:11px;font-weight:600">${h.date.slice(5)}</span><span style="font-size:11px;color:var(--text2)">${formatMin(s.durationMin)}${s.score?` · score ${s.score}`:''}</span></div>`;
+      if(s.deepMin||s.remMin||s.lightMin){sh+=`<div class="sleep-row"><div class="sleep-deep" style="flex:${s.deepMin||0}" title="Profond ${formatMin(s.deepMin)}"></div><div class="sleep-rem" style="flex:${s.remMin||0}" title="REM ${formatMin(s.remMin)}"></div><div class="sleep-light" style="flex:${s.lightMin||0}" title="Léger ${formatMin(s.lightMin)}"></div><div class="sleep-awake" style="flex:${s.awakeMin||0}"></div></div>`;
+      sh+=`<div style="display:flex;gap:6px;font-size:9px;margin-top:2px"><span style="color:#6870c0">●Profond ${formatMin(s.deepMin)}</span><span style="color:#a060c0">●REM ${formatMin(s.remMin)}</span><span style="color:#5090c0">●Léger ${formatMin(s.lightMin)}</span></div>`;}
+      sh+=`</div>`; 
+    });
+    document.getElementById('sleep-detail').innerHTML=sh;
+  } else document.getElementById('sleep-detail').innerHTML='<div style="font-size:11px;color:var(--text3)">Importe des données santé Garmin pour voir le sommeil.</div>';
+
+  // Pace compliance
+  if(runs.length){
+    let ph='<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Analyse des allures vs zones cibles</div>';
+    runs.forEach(r=>{
+      const efTarget='5:30–6:30/km';const intTarget='4:00–4:45/km';
+      ph+=`<div style="padding:6px 0;border-top:1px solid var(--border)"><div style="display:flex;justify-content:space-between"><span style="font-size:11px;font-weight:600">${r.date} · ${r.sessionType==='ef'?'EF':'Intervalles'}</span><span style="font-size:11px;color:var(--blue)">${r.paceStats?.avgPaceStr||'—'}</span></div><div style="font-size:10px;color:var(--text3)">Cible : ${r.sessionType==='ef'?efTarget:intTarget}</div></div>`;
+    });
+    document.getElementById('pace-compliance').innerHTML=ph;
+  }
+}
+
+function drawWeightChart(weights){
+  const canvas=document.getElementById('weight-chart');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=canvas.offsetWidth*dpr; canvas.height=140*dpr;
+  ctx.scale(dpr,dpr);
+  const W=canvas.offsetWidth,H=140;
+  const startDate=new Date('2026-06-22');const endDate=new Date('2026-08-23');
+  const totalDays=(endDate-startDate)/86400000;
+  const minW=Math.min(...weights.map(w=>w.weight),86);const maxW=Math.max(...weights.map(w=>w.weight),101);
+  const pad=1.5;
+  const xOf=ds=>{const d=new Date(ds);return 32+(((d-startDate)/86400000)/totalDays)*(W-42);};
+  const yOf=w=>12+(1-(w-minW+pad)/(maxW-minW+pad*2))*(H-28);
+  
+  // Grid
+  ctx.strokeStyle='#2a3e2a';ctx.lineWidth=1;
+  for(let w=Math.floor(minW);w<=Math.ceil(maxW);w++){if(w%2===0){const y=yOf(w);ctx.beginPath();ctx.moveTo(32,y);ctx.lineTo(W-8,y);ctx.stroke();ctx.fillStyle='#5a7a5a';ctx.font=`9px -apple-system`;ctx.textAlign='right';ctx.fillText(w,28,y+3);}}
+  
+  // Goal zone
+  ctx.fillStyle='rgba(126,184,122,.07)';ctx.fillRect(32,yOf(90),W-42,yOf(85)-yOf(90));
+  ctx.fillStyle='rgba(126,184,122,.35)';ctx.font='9px -apple-system';ctx.textAlign='left';ctx.fillText('Zone objectif 85–90',34,yOf(87.5)+3);
+  
+  // Goal line
+  ctx.strokeStyle='rgba(126,184,122,.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(xOf('2026-06-22'),yOf(100));ctx.lineTo(xOf('2026-08-23'),yOf(87.5));ctx.stroke();ctx.setLineDash([]);
+  
+  // Actual
+  if(weights.length>1){ctx.strokeStyle='#7eb87a';ctx.lineWidth=2;ctx.beginPath();weights.forEach((w,i)=>{if(i===0)ctx.moveTo(xOf(w.date),yOf(w.weight));else ctx.lineTo(xOf(w.date),yOf(w.weight));});ctx.stroke();}
+  weights.forEach(w=>{ctx.beginPath();ctx.arc(xOf(w.date),yOf(w.weight),3,0,Math.PI*2);ctx.fillStyle='#7eb87a';ctx.fill();});
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('log-date').value=today();
+  document.getElementById('log-today-date').textContent=cap(formatDate(today()));
+  renderHome();
+  renderPlan();
+  const db=window.GarminSync.getData();
+  if(db.activities.length){document.getElementById('garmin-badge').style.display='';document.getElementById('garmin-badge').textContent=db.activities.length;}
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+});
+</script>
+</body>
+</html>
