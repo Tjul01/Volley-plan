@@ -183,6 +183,37 @@ textarea.input-field { resize:none; font-family:inherit; }
 
 /* CHEVRON */
 .chevron { transition:transform .2s; color:var(--text3); flex-shrink:0; }
+
+/* PIN SCREEN */
+.pin-screen {
+  position:fixed; inset:0; z-index:1000;
+  background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:24px;
+}
+.pin-logo { font-size:52px; margin-bottom:8px; }
+.pin-app-name { font-size:20px; font-weight:800; color:var(--accent); margin-bottom:4px; letter-spacing:-.3px; }
+.pin-app-sub { font-size:12px; color:var(--text3); margin-bottom:40px; }
+.pin-dots { display:flex; gap:14px; margin-bottom:32px; }
+.pin-dot { width:16px; height:16px; border-radius:50%; border:2px solid var(--text3); background:transparent; transition:all .15s; }
+.pin-dot.filled { background:var(--accent); border-color:var(--accent); }
+.pin-dot.error { background:var(--red); border-color:var(--red); }
+.pin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:280px; }
+.pin-btn {
+  aspect-ratio:1; border-radius:50%; border:1px solid var(--border);
+  background:var(--surface); color:var(--text);
+  font-size:22px; font-weight:600; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; transition:background .1s;
+}
+.pin-btn:active { background:var(--surface3); }
+.pin-btn-sub { font-size:8px; color:var(--text3); letter-spacing:1px; font-weight:400; }
+.pin-btn-del { font-size:20px; background:transparent; border-color:transparent; }
+.pin-btn-del:active { background:var(--surface2); }
+.pin-error-msg { font-size:12px; color:var(--red); margin-top:16px; min-height:18px; }
+.pin-setup-hint { font-size:11px; color:var(--text3); margin-bottom:24px; text-align:center; max-width:260px; }
+.pin-setup-step { font-size:13px; font-weight:600; color:var(--text2); margin-bottom:20px; }
+.pin-forgot { font-size:11px; color:var(--text3); margin-top:20px; text-decoration:underline; cursor:pointer; }
 .card.expanded .chevron { transform:rotate(180deg); }
 
 /* MODAL */
@@ -257,6 +288,37 @@ canvas { display:block; width:100%; }
 </style>
 </head>
 <body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen" class="pin-screen">
+  <div class="pin-logo">🏐</div>
+  <div class="pin-app-name">Plan Volley 2026</div>
+  <div class="pin-app-sub" id="pin-sub">Entrez votre code PIN</div>
+  <div id="pin-setup-step" class="pin-setup-step" style="display:none"></div>
+  <div id="pin-setup-hint" class="pin-setup-hint" style="display:none"></div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinInput('1')">1<span class="pin-btn-sub"></span></button>
+    <button class="pin-btn" onclick="pinInput('2')">2<span class="pin-btn-sub">ABC</span></button>
+    <button class="pin-btn" onclick="pinInput('3')">3<span class="pin-btn-sub">DEF</span></button>
+    <button class="pin-btn" onclick="pinInput('4')">4<span class="pin-btn-sub">GHI</span></button>
+    <button class="pin-btn" onclick="pinInput('5')">5<span class="pin-btn-sub">JKL</span></button>
+    <button class="pin-btn" onclick="pinInput('6')">6<span class="pin-btn-sub">MNO</span></button>
+    <button class="pin-btn" onclick="pinInput('7')">7<span class="pin-btn-sub">PQRS</span></button>
+    <button class="pin-btn" onclick="pinInput('8')">8<span class="pin-btn-sub">TUV</span></button>
+    <button class="pin-btn" onclick="pinInput('9')">9<span class="pin-btn-sub">WXYZ</span></button>
+    <button class="pin-btn" style="background:transparent;border-color:transparent" disabled></button>
+    <button class="pin-btn" onclick="pinInput('0')">0</button>
+    <button class="pin-btn pin-btn-del" onclick="pinDelete()">⌫</button>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+  <div class="pin-forgot" id="pin-forgot" onclick="pinForgot()" style="display:none">Code oublié ?</div>
+</div>
 
 <!-- NAV -->
 <nav class="nav">
@@ -1928,6 +1990,151 @@ function drawWeightChart(weights){
 }
 
 // ═══════════════════════════════════════════════════════════
+// PIN SECURITY
+// ═══════════════════════════════════════════════════════════
+const PIN_KEY = 'volley_pin_hash';
+const PIN_UNLOCK_KEY = 'volley_unlocked_at';
+const SESSION_TIMEOUT = 8 * 60 * 60 * 1000; // 8 heures
+
+// Simple hash pour ne pas stocker le PIN en clair
+async function hashPIN(pin) {
+  const data = new TextEncoder().encode('volley2026_' + pin);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+let pinBuffer = '';
+let pinSetupPhase = 0; // 0=locked, 1=setup1, 2=setup2
+let pinSetupFirst = '';
+
+function isPINSet() { return !!localStorage.getItem(PIN_KEY); }
+function isSessionActive() {
+  const t = localStorage.getItem(PIN_UNLOCK_KEY);
+  return t && (Date.now() - parseInt(t)) < SESSION_TIMEOUT;
+}
+
+function initPIN() {
+  if (!isPINSet()) {
+    // Premier lancement — configurer le PIN
+    pinSetupPhase = 1;
+    document.getElementById('pin-sub').textContent = 'Créez votre code PIN';
+    document.getElementById('pin-setup-step').style.display = 'block';
+    document.getElementById('pin-setup-step').textContent = 'Étape 1 / 2 — Choisissez un code à 4 chiffres';
+    document.getElementById('pin-setup-hint').style.display = 'block';
+    document.getElementById('pin-setup-hint').textContent = 'Ce code protégera l\'accès à votre app. Choisissez-en un dont vous vous souviendrez.';
+  } else if (isSessionActive()) {
+    // Session encore valide — déverrouillage auto
+    unlockApp();
+    return;
+  } else {
+    // PIN existant — demander la saisie
+    document.getElementById('pin-forgot').style.display = 'block';
+    document.getElementById('pin-sub').textContent = 'Entrez votre code PIN';
+  }
+  document.getElementById('pin-screen').style.display = 'flex';
+}
+
+function pinInput(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePINDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(() => processPIN(), 100);
+  }
+}
+
+function pinDelete() {
+  if (pinBuffer.length > 0) {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updatePINDots();
+  }
+}
+
+function updatePINDots(state = 'default') {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    dot.className = 'pin-dot';
+    if (i < pinBuffer.length) dot.classList.add('filled');
+    if (state === 'error') dot.classList.add('error');
+  }
+}
+
+async function processPIN() {
+  const hash = await hashPIN(pinBuffer);
+
+  if (pinSetupPhase === 1) {
+    // Premier setup — mémoriser et demander confirmation
+    pinSetupFirst = hash;
+    pinSetupPhase = 2;
+    pinBuffer = '';
+    updatePINDots();
+    document.getElementById('pin-setup-step').textContent = 'Étape 2 / 2 — Confirmez votre code';
+    document.getElementById('pin-setup-hint').textContent = 'Saisissez à nouveau le même code pour confirmer.';
+    document.getElementById('pin-error').textContent = '';
+    return;
+  }
+
+  if (pinSetupPhase === 2) {
+    // Confirmation setup
+    if (hash === pinSetupFirst) {
+      localStorage.setItem(PIN_KEY, hash);
+      unlockApp();
+    } else {
+      pinBuffer = '';
+      pinSetupFirst = '';
+      pinSetupPhase = 1;
+      updatePINDots('error');
+      document.getElementById('pin-error').textContent = '❌ Codes différents — recommencez';
+      document.getElementById('pin-setup-step').textContent = 'Étape 1 / 2 — Choisissez un code à 4 chiffres';
+      document.getElementById('pin-setup-hint').textContent = 'Ce code protégera l\'accès à votre app.';
+      setTimeout(() => { updatePINDots(); document.getElementById('pin-error').textContent = ''; }, 1200);
+    }
+    return;
+  }
+
+  // Vérification PIN existant
+  const stored = localStorage.getItem(PIN_KEY);
+  if (hash === stored) {
+    localStorage.setItem(PIN_UNLOCK_KEY, Date.now().toString());
+    unlockApp();
+  } else {
+    pinBuffer = '';
+    updatePINDots('error');
+    document.getElementById('pin-error').textContent = '❌ Code incorrect — réessayez';
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    setTimeout(() => { updatePINDots(); document.getElementById('pin-error').textContent = ''; }, 1200);
+  }
+}
+
+function unlockApp() {
+  localStorage.setItem(PIN_UNLOCK_KEY, Date.now().toString());
+  const screen = document.getElementById('pin-screen');
+  screen.style.opacity = '0';
+  screen.style.transition = 'opacity .3s';
+  setTimeout(() => { screen.style.display = 'none'; }, 300);
+  pinBuffer = '';
+}
+
+function pinForgot() {
+  const confirmed = confirm('Réinitialiser le code PIN ?\n\nTous vos données (séances, poids, Garmin) seront conservées.\nSeul le code sera supprimé.');
+  if (confirmed) {
+    localStorage.removeItem(PIN_KEY);
+    localStorage.removeItem(PIN_UNLOCK_KEY);
+    pinBuffer = '';
+    pinSetupPhase = 1;
+    pinSetupFirst = '';
+    updatePINDots();
+    document.getElementById('pin-sub').textContent = 'Créez votre code PIN';
+    document.getElementById('pin-setup-step').style.display = 'block';
+    document.getElementById('pin-setup-step').textContent = 'Étape 1 / 2 — Choisissez un code à 4 chiffres';
+    document.getElementById('pin-setup-hint').style.display = 'block';
+    document.getElementById('pin-setup-hint').textContent = 'Ce code protégera l\'accès à votre app.';
+    document.getElementById('pin-forgot').style.display = 'none';
+    document.getElementById('pin-error').textContent = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1938,6 +2145,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const db=window.GarminSync.getData();
   if(db.activities.length){document.getElementById('garmin-badge').style.display='';document.getElementById('garmin-badge').textContent=db.activities.length;}
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  // Init PIN — always last
+  initPIN();
 });
 </script>
 </body>
